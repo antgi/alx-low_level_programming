@@ -6,8 +6,10 @@
  */
 int main(void)
 {
+myput();
+return (0);
+}
+void myput(void)
 {
 putchar("_putchar");
-}
-return (0);
 }
