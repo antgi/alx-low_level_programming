@@ -17,7 +17,7 @@ if (*s == accept[r])
 {
 n++;
 break;															}
-else if 
+else if
 (accept[r + 1] == '\0')
 return (n);
 }
