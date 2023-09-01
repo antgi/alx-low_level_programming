@@ -17,5 +17,5 @@ if (b[i] < '0' || b[i] > '1')
 return (0);
 decm_val = 2 * decm_val + (b[i] - '0');
 }
-return (dec_val);
+return (decm_val);
 }
