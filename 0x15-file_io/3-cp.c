@@ -1,40 +1,70 @@
-#include "main.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#define BUFFER_SIZE 1024
 /**
- * main - entry point
- * description: copies the content of a file to another file
- * @argc: number of arguments
- * @argv: array of arguments
- * Return: 0 on success, 97-100 on failure
+ * display_error - This will display an error message to stderr and exit.
+ * @code: Represents the exit code.
+ * @message: Describes the error message to display.
+ */
+void display_error(int code, const char *message)
+{
+dprintf(STDERR_FILENO, "%s\n", message);
+exit(code);
+}
+/**
+ * copy_file - It will copy the content of one file to another.
+ * @source: Describes the source file descriptor.
+ * @dest: Represents the destination file descriptor.
+ */
+void copy_file(int source, int dest)
+{
+char buffer[BUFFER_SIZE];
+ssize_t bytes_read, bytes_written;
+while ((bytes_read = read(source, buffer, BUFFER_SIZE)) > 0)
+{
+bytes_written = write(dest, buffer, bytes_read);
+if (bytes_written == -1)
+{
+display_error(99, "Error: Can't write to file_to");
+}
+}
+if (bytes_read == -1)
+{
+display_error(98, "Error: Can't read from file_from");
+}
+}
+/**
+ * main - Entry point for the cp program.
+ * @argc: The number of arguments passed to the program.
+ * @argv: An array of strings containing the arguments.
+ *
+ * Return: 0 on success, or an error code on failure.
  */
 int main(int argc, char *argv[])
 {
-int fd_from, fd_to, read_bytes, write_bytes;
-char buf[1024];
+int source_fd, dest_fd;
 if (argc != 3)
-dprintf(STDERR_FILENO, "Usage: cp file_from file_to\n"), exit(97);
-fd_from = open(argv[1], O_RDONLY);
-if (fd_from == -1)
 {
-dprintf(STDERR_FILENO, "Error: Can't read from file %s\n", argv[1]);
-exit(98);
+display_error(97, "Usage: cp file_from file_to");
 }
-fd_to = open(argv[2], O_CREAT | O_WRONLY | O_TRUNC, 0664);
-if (fd_to == -1)
-dprintf(STDERR_FILENO, "Error: Can't write to %s\n", argv[2]), exit(99);
-while ((read_bytes = read(fd_from, buf, 1024)) > 0)
+source_fd = open(argv[1], O_RDONLY);
+if (source_fd == -1)
+display_error(98, "Error: Can't read from file_from");
+dest_fd = open(argv[2], O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR
+| S_IWUSR | S_IRGRP | S_IROTH);
+if (dest_fd == -1)
 {
-write_bytes = write(fd_to, buf, read_bytes);
-if (write_bytes == -1)
-dprintf(STDERR_FILENO, "Error: Can't write to %s\n", argv[2]), exit(99);
+close(source_fd);
+display_error(99, "Error: Can't write to file_to");
 }
-if (read_bytes == -1)
-{
-dprintf(STDERR_FILENO, "Error: Can't read from file %s\n", argv[1]);
-exit(98);
-}
-if (close(fd_from) == -1)
-dprintf(STDERR_FILENO, "Error: Can't close fd %d\n", fd_from), exit(100);
-if (close(fd_to) == -1)
-dprintf(STDERR_FILENO, "Error: Can't close fd %d\n", fd_to), exit(100);
+copy_file(source_fd, dest_fd);
+if (close(source_fd) == -1)
+display_error(100, "Error: Can't close source file descrip.");
+if (close(dest_fd) == -1)
+display_error(100, "Error: Can't close dest. file descrip.");
 return (0);
 }
